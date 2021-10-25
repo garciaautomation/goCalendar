@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,30 +18,17 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Dependencies
-// go get -u google.golang.org/api/calendar/v3
-// go get -u golang.org/x/oauth2/google
-
-// func bindCommandWithAliases(key, description string, cmd command.Cmd, requiredFlags []string) {
-// 	command.On(key, description, cmd, requiredFlags)
-// 	aliases, ok := drive.Aliases[key]
-// 	if ok {
-// 		for _, alias := range aliases {
-// 			command.On(alias, description, cmd, requiredFlags)
-// 		}
-// 	}
-// }
-
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
-	// time.
-	tokFile := "token.json"
-	tok, err := tokenFromFile(tokFile)
+	homedir := getHomeDir()
+
+	tokenFile := homedir + "/.config/go-calendar/token.json"
+	tok, err := tokenFromFile(tokenFile)
 	if err != nil {
 		tok = getTokenFromWeb(config)
-		saveToken(tokFile, tok)
+		saveToken(tokenFile, tok)
 	}
 	return config.Client(context.Background(), tok)
 }
@@ -86,16 +74,27 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
+func getHomeDir() string {
+	h, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return h
+}
+
 func main() {
+
+	homedir := getHomeDir()
 	ctx := context.Background()
-	b, err := ioutil.ReadFile("credentials.json")
+	read, err := ioutil.ReadFile(homedir + "/.config/go-calendar/credentials.json")
+	// readwrite, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
 
 	// If modifying these scopes, delete your previously saved token.json.
-	// config, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope)
-	config, err := google.ConfigFromJSON(b, calendar.CalendarScope)
+	// config, err := google.ConfigFromJSON(readwrite, calendar.CalendarScope)
+	config, err := google.ConfigFromJSON(read, calendar.CalendarScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
@@ -107,7 +106,6 @@ func main() {
 	}
 
 	argparse(srv)
-	// command.ParseAndRun()
 }
 
 func upcomingEvents(srv *calendar.Service, cal string) {
@@ -160,56 +158,45 @@ func list(srv *calendar.Service, opt string, opt2 string) {
 	}
 }
 
-type eventStruct struct {
-	summary     string
-	location    string `default: "here"`
-	description string
-	start       string
-	end         string
-	// recurrence  int
+type Event struct {
+	calendar.Event
 }
 
-func (e *eventStruct) eventDefaults() {
-	// now := time.Now()
-	e.summary = "Default Summary"
-	e.description = "Default Description"
-	e.location = "Here"
-	e.start = time.Now().Add(30 * time.Minute).Format("2006-01-02T15:04:05-0700")
-	e.end = time.Now().Add(90 * time.Minute).Format("2006-01-02T15:04:05-0700")
+func (a Event) eventDefaults() *calendar.Event {
+	e := &calendar.Event{}
 
-}
-
-func addEvent(srv *calendar.Service, calId string, event string) {
-	// e := calendar.NewEventsService(srv)
-	// calendar.EventCreator
-	p := new(eventStruct)
-	p.eventDefaults()
-	fmt.Printf("p.location: %v\n", p)
-	e := &calendar.Event{
-		Summary:     event,
-		Location:    p.location,
-		Description: p.description,
-		Start: &calendar.EventDateTime{
-			DateTime: p.start,
-			// TimeZone: "America/Chicago",
-		},
-		End: &calendar.EventDateTime{
-			DateTime: p.end,
-			// TimeZone: "America/Chicago",
-		},
-		// Recurrence: []string{"RRULE:FREQ=WEEKLY;COUNT=2"},
-		// Attendees: []*calendar.EventAttendee{
-		// 	&calendar.EventAttendee{Email: "lpage@example.com"},
-		// 	&calendar.EventAttendee{Email: "sbrin@example.com"},
-		// },
+	e.Summary = "Default Summary"
+	e.Description = "Default Description"
+	e.Location = "Here"
+	e.Start = &calendar.EventDateTime{
+		DateTime: time.Now().Add(30 * time.Minute).Format("2006-01-02T15:04:05-0700"),
+		TimeZone: "America/Chicago",
 	}
+	e.End = &calendar.EventDateTime{
+		DateTime: time.Now().Add(90 * time.Minute).Format("2006-01-02T15:04:05-0700"),
+		TimeZone: "America/Chicago",
+	}
+	e.Visibility = "public" // default private public
+	e.GuestsCanModify = true
+	e.Attendees = append(e.Attendees, &calendar.EventAttendee{Email: "secret@gmail.com"})
+	// e.Recurrence = []string{"RRULE:FREQ=WEEKLY;COUNT=2"}
+	// Recurrence: []string{"RRULE:FREQ=WEEKLY;COUNT=2"},
+	// Attendees: []*calendar.EventAttendee{
+	// 	&calendar.EventAttendee{Email: "lpage@example.com"},
+	// 	&calendar.EventAttendee{Email: "sbrin@example.com"},
 
-	// e, err := srv.Events.QuickAdd(calId, event).Do()
-	e, err := srv.Events.Insert(calId, e).Do()
+	return e
+}
+
+func addEvent(srv *calendar.Service, calId string, name string) {
+	q := new(Event)
+	event := q.eventDefaults()
+	// spew.Dump(event)
+	event, err := srv.Events.Insert(calId, event).Do()
 	if err != nil {
 		log.Fatalf("Unable to create event. %v\n", err)
 	}
-	fmt.Printf("Event created: %s\n", e.HtmlLink)
+	fmt.Printf("Event created: %s\n", event.HtmlLink)
 }
 
 func deleteEvent(srv *calendar.Service, calId string, event string) {
@@ -222,6 +209,11 @@ func deleteEvent(srv *calendar.Service, calId string, event string) {
 
 func argparse(srv *calendar.Service) {
 	flag.Parse()
+	// a := flag.Args()
+	if len(flag.Args()) < 1 {
+		General()
+	}
+
 	cmd := flag.Arg(0)
 	opt := flag.Arg(1)
 	opt2 := flag.Arg(2)
@@ -238,12 +230,6 @@ func argparse(srv *calendar.Service) {
 
 }
 
-// type listCmd struct{}
-
-// func (cmd *listCmd) Flags(fs *flag.FlagSet) *flag.FlagSet {
-// 	return fs
-// }
-
-// func (cmd *listCmd) Run(srv calendar.Service) {
-// 	fmt.Printf("\"asdf\": %v\n", "asdf")
-// }
+func General() {
+	fmt.Println("Basic Help")
+}
