@@ -130,7 +130,7 @@ func upcomingEvents(srv *calendar.Service, cal string) {
 			if date == "" {
 				date = item.Start.Date
 			}
-			fmt.Printf("\t%v (%v)\n", item.Summary, date)
+			fmt.Printf("\t%v :: %v :: (%v)\n", item.Summary, item.Id, date)
 		}
 	}
 }
@@ -160,33 +160,64 @@ func list(srv *calendar.Service, opt string, opt2 string) {
 	}
 }
 
+type eventStruct struct {
+	summary     string
+	location    string `default: "here"`
+	description string
+	start       string
+	end         string
+	// recurrence  int
+}
+
+func (e *eventStruct) eventDefaults() {
+	// now := time.Now()
+	e.summary = "Default Summary"
+	e.description = "Default Description"
+	e.location = "Here"
+	e.start = time.Now().Add(30 * time.Minute).Format("2006-01-02T15:04:05-0700")
+	e.end = time.Now().Add(90 * time.Minute).Format("2006-01-02T15:04:05-0700")
+
+}
+
 func addEvent(srv *calendar.Service, calId string, event string) {
 	// e := calendar.NewEventsService(srv)
 	// calendar.EventCreator
+	p := new(eventStruct)
+	p.eventDefaults()
+	fmt.Printf("p.location: %v\n", p)
 	e := &calendar.Event{
 		Summary:     event,
-		Location:    "800 Howard St., San Francisco, CA 94103",
-		Description: "A chance to hear more about Google's developer products.",
+		Location:    p.location,
+		Description: p.description,
 		Start: &calendar.EventDateTime{
-			DateTime: "2021-10-25T09:00:00-07:00",
-			TimeZone: "America/Los_Angeles",
+			DateTime: p.start,
+			// TimeZone: "America/Chicago",
 		},
 		End: &calendar.EventDateTime{
-			DateTime: "2021-10-25T09:00:00-08:00",
-			TimeZone: "America/Los_Angeles",
+			DateTime: p.end,
+			// TimeZone: "America/Chicago",
 		},
-		Recurrence: []string{"RRULE:FREQ=WEEKLY;COUNT=2"},
+		// Recurrence: []string{"RRULE:FREQ=WEEKLY;COUNT=2"},
 		// Attendees: []*calendar.EventAttendee{
 		// 	&calendar.EventAttendee{Email: "lpage@example.com"},
 		// 	&calendar.EventAttendee{Email: "sbrin@example.com"},
 		// },
 	}
 
+	// e, err := srv.Events.QuickAdd(calId, event).Do()
 	e, err := srv.Events.Insert(calId, e).Do()
 	if err != nil {
 		log.Fatalf("Unable to create event. %v\n", err)
 	}
 	fmt.Printf("Event created: %s\n", e.HtmlLink)
+}
+
+func deleteEvent(srv *calendar.Service, calId string, event string) {
+	e := srv.Events.Delete(calId, event).Do()
+	if e != nil {
+		log.Fatal(e.Error())
+	}
+	fmt.Printf("Event delted: %s\n", event)
 }
 
 func argparse(srv *calendar.Service) {
@@ -200,6 +231,8 @@ func argparse(srv *calendar.Service) {
 		list(srv, opt, opt2)
 	case "add":
 		addEvent(srv, opt, opt2)
+	case "delete":
+		deleteEvent(srv, opt, opt2)
 
 	}
 
