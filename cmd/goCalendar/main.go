@@ -10,8 +10,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/garciaautomation/goCalendar/src/cal"
+	"github.com/garciaautomation/goCalendar/src/help"
+	"github.com/garciaautomation/goCalendar/src/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -22,7 +24,9 @@ import (
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
-	homedir := GetHomeDir()
+	homedir := utils.GetHomeDir()
+	// help.General()
+	// help.
 
 	tokenFile := homedir + "/.config/goCalendar/token.json"
 	tok, err := tokenFromFile(tokenFile)
@@ -74,17 +78,17 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func GetHomeDir() string {
-	h, err := os.UserHomeDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return h
-}
+// func GetHomeDir() string {
+// 	h, err := os.UserHomeDir()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	return h
+// }
 
 func main() {
 
-	homedir := GetHomeDir()
+	homedir := utils.GetHomeDir()
 	ctx := context.Background()
 	read, err := ioutil.ReadFile(homedir + "/.config/goCalendar/credentials.json")
 	// readwrite, err := ioutil.ReadFile("credentials.json")
@@ -108,95 +112,11 @@ func main() {
 	argparse(srv)
 }
 
-func upcomingEvents(srv *calendar.Service, cal string) {
-	t := time.Now().Format(time.RFC3339)
-	// l := srv.Events.List()
-	// for _, v := range l {
-	// fmt.Printf("l: %v\n", l)
-	// }
-	events, err := srv.Events.List(cal).ShowDeleted(false).
-		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
-	if err != nil {
-		log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
-	}
-	fmt.Println("Upcoming events:")
-	if len(events.Items) == 0 {
-		fmt.Println("No upcoming events found.")
-	} else {
-		for _, item := range events.Items {
-			date := item.Start.DateTime
-			if date == "" {
-				date = item.Start.Date
-			}
-			fmt.Printf("\t%v :: %v :: (%v)\n", item.Summary, item.Id, date)
-		}
-	}
-}
-
-func list(srv *calendar.Service, opt string, opt2 string) {
-	switch opt {
-	case "calendars":
-		g.listCalendars(srv)
-	case "events":
-		fmt.Printf("opt2: %v\n", opt2)
-		upcomingEvents(srv, opt2)
-	}
-}
-
-type Event struct {
-	calendar.Event
-}
-
-func (a Event) eventDefaults() *calendar.Event {
-	e := &calendar.Event{}
-
-	e.Summary = "Default Summary"
-	e.Description = "Default Description"
-	e.Location = "Here"
-	e.Start = &calendar.EventDateTime{
-		DateTime: time.Now().Add(30 * time.Minute).Format("2006-01-02T15:04:05-0700"),
-		TimeZone: "America/Chicago",
-	}
-	e.End = &calendar.EventDateTime{
-		DateTime: time.Now().Add(90 * time.Minute).Format("2006-01-02T15:04:05-0700"),
-		TimeZone: "America/Chicago",
-	}
-	e.Visibility = "public" // default private public
-	e.GuestsCanModify = true
-	e.Attendees = append(e.Attendees, &calendar.EventAttendee{Email: "secret@gmail.com"})
-	// e.Recurrence = []string{"RRULE:FREQ=WEEKLY;COUNT=2"}
-	// Recurrence: []string{"RRULE:FREQ=WEEKLY;COUNT=2"},
-	// Attendees: []*calendar.EventAttendee{
-	// 	&calendar.EventAttendee{Email: "lpage@example.com"},
-	// 	&calendar.EventAttendee{Email: "sbrin@example.com"},
-
-	return e
-}
-
-func addEvent(srv *calendar.Service, calId string, name string) {
-	q := new(Event)
-	event := q.eventDefaults()
-	// spew.Dump(event)
-	event, err := srv.Events.Insert(calId, event).Do()
-	if err != nil {
-		log.Fatalf("Unable to create event. %v\n", err)
-	}
-	fmt.Printf("Event created: %s\n", event.HtmlLink)
-}
-
-func deleteEvent(srv *calendar.Service, calId string, event string) {
-	e := srv.Events.Delete(calId, event).Do()
-	if e != nil {
-		log.Fatal(e.Error())
-	}
-	fmt.Printf("Event delted: %s\n", event)
-}
-
 func argparse(srv *calendar.Service) {
 	flag.Parse()
 	// a := flag.Args()
 	if len(flag.Args()) < 1 {
-		General()
+		help.General()
 	}
 
 	cmd := flag.Arg(0)
@@ -205,16 +125,11 @@ func argparse(srv *calendar.Service) {
 
 	switch cmd {
 	case "list":
-		list(srv, opt, opt2)
+		cal.List(srv, opt, opt2)
 	case "add":
-		addEvent(srv, opt, opt2)
+		cal.AddEvent(srv, opt, opt2)
 	case "delete":
-		deleteEvent(srv, opt, opt2)
+		cal.DeleteEvent(srv, opt, opt2)
 
 	}
-
-}
-
-func General() {
-	fmt.Println("Basic Help")
 }
