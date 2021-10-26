@@ -15,12 +15,17 @@
 package help
 
 import (
-	"fmt"
+	"regexp"
+	"testing"
 )
 
-func General(h string) string {
-	r := "Basic Help for: " + h
-	fmt.Println("Basic Help for: " + h)
-	return r
+func TestGeneral(t *testing.T) {
+	name := "Gladys"
+	want := regexp.MustCompile(`\b` + name + `\b`)
+	msg := General("Gladys")
+	if !want.MatchString(msg) {
+		t.Fatalf(`Hello("Gladys") = %q, %v, want match for , nil`, msg, want)
+	} // fmt.Println("Basic Help")
+
 	// h := GetHomeDir()
 }

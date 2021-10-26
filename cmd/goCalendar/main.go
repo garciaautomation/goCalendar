@@ -116,7 +116,7 @@ func argparse(srv *calendar.Service) {
 	flag.Parse()
 	// a := flag.Args()
 	if len(flag.Args()) < 1 {
-		help.General()
+		help.General("listCalendars")
 	}
 
 	cmd := flag.Arg(0)
