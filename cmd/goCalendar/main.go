@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 
-	_ "goCalendar/listCalendars"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -137,7 +136,7 @@ func upcomingEvents(srv *calendar.Service, cal string) {
 func list(srv *calendar.Service, opt string, opt2 string) {
 	switch opt {
 	case "calendars":
-		listCalendars(srv)
+		g.listCalendars(srv)
 	case "events":
 		fmt.Printf("opt2: %v\n", opt2)
 		upcomingEvents(srv, opt2)
