@@ -1,4 +1,4 @@
-module go-calendar
+module github.com/garciaautomation/goCalendar
 
 go 1.16
 
