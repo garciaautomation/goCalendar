@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 
+	_ "goCalendar/listCalendars"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -129,21 +130,6 @@ func upcomingEvents(srv *calendar.Service, cal string) {
 				date = item.Start.Date
 			}
 			fmt.Printf("\t%v :: %v :: (%v)\n", item.Summary, item.Id, date)
-		}
-	}
-}
-
-func listCalendars(srv *calendar.Service) {
-	calendars, err := srv.CalendarList.List().Do()
-	if err != nil {
-		log.Fatalf("Unable to retrieve next ten of the user's calendars: %v", err)
-	}
-	fmt.Println("Upcoming calendars:")
-	if len(calendars.Items) == 0 {
-		fmt.Println("No upcoming calendars found.")
-	} else {
-		for _, item := range calendars.Items {
-			fmt.Printf("\t%v :: %v\n", item.Summary, item.Id)
 		}
 	}
 }
