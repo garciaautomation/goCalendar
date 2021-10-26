@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/garciaautomation/goCalendar/src/cal"
-	"github.com/garciaautomation/goCalendar/src/help"
-	"github.com/garciaautomation/goCalendar/src/utils"
+	"github.com/garciaautomation/goCalendar/cal"
+	"github.com/garciaautomation/goCalendar/help"
+	"github.com/garciaautomation/goCalendar/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
