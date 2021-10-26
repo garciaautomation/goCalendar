@@ -74,7 +74,7 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func getHomeDir() string {
+func GetHomeDir() string {
 	h, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
