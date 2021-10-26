@@ -22,7 +22,7 @@ import (
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
-	homedir := getHomeDir()
+	homedir := GetHomeDir()
 
 	tokenFile := homedir + "/.config/go-calendar/token.json"
 	tok, err := tokenFromFile(tokenFile)
@@ -84,7 +84,7 @@ func GetHomeDir() string {
 
 func main() {
 
-	homedir := getHomeDir()
+	homedir := GetHomeDir()
 	ctx := context.Background()
 	read, err := ioutil.ReadFile(homedir + "/.config/go-calendar/credentials.json")
 	// readwrite, err := ioutil.ReadFile("credentials.json")
