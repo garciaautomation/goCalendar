@@ -24,7 +24,7 @@ func getClient(config *oauth2.Config) *http.Client {
 	// created automatically when the authorization flow completes for the first
 	homedir := GetHomeDir()
 
-	tokenFile := homedir + "/.config/go-calendar/token.json"
+	tokenFile := homedir + "/.config/goCalendar/token.json"
 	tok, err := tokenFromFile(tokenFile)
 	if err != nil {
 		tok = getTokenFromWeb(config)
@@ -86,7 +86,7 @@ func main() {
 
 	homedir := GetHomeDir()
 	ctx := context.Background()
-	read, err := ioutil.ReadFile(homedir + "/.config/go-calendar/credentials.json")
+	read, err := ioutil.ReadFile(homedir + "/.config/goCalendar/credentials.json")
 	// readwrite, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
