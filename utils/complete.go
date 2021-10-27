@@ -2,20 +2,20 @@ package utils
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 
 	"github.com/posener/complete/v2"
+	"github.com/posener/complete/v2/compflag"
 )
 
-// var (
-// 	// Add variables to the program.
-// 	name      = flag.String("name", "", "Give your name")
-// 	something = flag.String("something", "", "Expect somthing, but we don't know what, so no other completion options will be provided.")
-// 	nothing   = flag.String("nothing", "", "Expect nothing after flag, so other completion can be provided.")
-// )
+var (
+	// Add variables to the program.
+	startDate = compflag.String("name", "", "Give your name")
+	startTime = compflag.String("something", "", "Expect somthing, but we don't know what, so no other completion options will be provided.")
+	// nothing   = compflag.String("nothing", "", "Expect nothing after flag, so other completion can be provided.")
+)
 
 var (
 	// Add variables to the program. Since we are using the compflag library, we can pass options to
@@ -52,7 +52,9 @@ func AddCompletion() {
 				},
 			},
 			"add": {
-				Sub: map[string]*complete.Command{"<id>": {}, "primary": {}},
+				Sub: map[string]*complete.Command{
+					"<id>":    {Sub: map[string]*complete.Command{"startDate": {}}},
+					"primary": {Sub: map[string]*complete.Command{"startDate": {}}}},
 			},
 			"delete": {
 				Sub: map[string]*complete.Command{"<id>": {}, "primary": {}},
@@ -61,13 +63,8 @@ func AddCompletion() {
 	}
 
 	complete.Complete(os.Args[0], cmd)
+	compflag.Parse()
 
-	// Program logic.
-	if *list == "" {
-		fmt.Println("Your name is missing")
-		os.Exit(1)
-	}
-	// flag.Parse()
 }
 
 func getBinaryPath() (string, error) {

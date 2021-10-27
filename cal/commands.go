@@ -54,11 +54,7 @@ func List(srv *calendar.Service, opt string, opt2 string) {
 	}
 }
 
-type Event struct {
-	calendar.Event
-}
-
-func (a Event) eventDefaults() *calendar.Event {
+func eventDefaults() *calendar.Event {
 	e := &calendar.Event{}
 
 	e.Summary = "Default Summary"
@@ -84,15 +80,17 @@ func (a Event) eventDefaults() *calendar.Event {
 	return e
 }
 
-func AddEvent(srv *calendar.Service, calId string, name string) {
-	q := new(Event)
-	event := q.eventDefaults()
+func AddEvent(srv *calendar.Service, calendarId string, name string) {
+	// e := new(Event)
+	event := eventDefaults()
+	event.Summary = name
+	fmt.Printf("name: %v\n", name)
 	// spew.Dump(event)
-	event, err := srv.Events.Insert(calId, event).Do()
+	event, err := srv.Events.Insert(calendarId, event).Do()
 	if err != nil {
 		log.Fatalf("Unable to create event. %v\n", err)
 	}
-	fmt.Printf("Event created: %s\n", event.HtmlLink)
+	fmt.Printf("Event created: %s\n\t%s\n", event.HtmlLink, event.Id)
 }
 
 func DeleteEvent(srv *calendar.Service, calId string, event string) {
