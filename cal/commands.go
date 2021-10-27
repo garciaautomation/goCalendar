@@ -8,27 +8,24 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func ListCalendars(srv *calendar.Service) {
+func ListCalendars(srv *calendar.Service) []*calendar.CalendarListEntry {
 	calendars, err := srv.CalendarList.List().Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve next ten of the user's calendars: %v", err)
 	}
 	fmt.Println("Upcoming calendars:")
 	if len(calendars.Items) == 0 {
-		fmt.Println("No upcoming calendars found.")
+		fmt.Println("No calendars found.")
 	} else {
-		for _, item := range calendars.Items {
-			fmt.Printf("\t%v :: %v\n", item.Summary, item.Id)
-		}
+		// for _, item := range calendars.Items {
+		// 	fmt.Printf("\t%v :: %v\n", item.Summary, item.Id)
+		// }
 	}
+	return calendars.Items
 }
 
 func UpcomingEvents(srv *calendar.Service, cal string) {
 	t := time.Now().Format(time.RFC3339)
-	// l := srv.Events.List()
-	// for _, v := range l {
-	// fmt.Printf("l: %v\n", l)
-	// }
 	events, err := srv.Events.List(cal).ShowDeleted(false).
 		SingleEvents(true).TimeMin(t).MaxResults(10).OrderBy("startTime").Do()
 	if err != nil {
@@ -51,10 +48,8 @@ func UpcomingEvents(srv *calendar.Service, cal string) {
 func List(srv *calendar.Service, opt string, opt2 string) {
 	switch opt {
 	case "calendars":
-		// goCalendar.listCalendars(srv)
 		ListCalendars(srv)
 	case "events":
-		fmt.Printf("opt2: %v\n", opt2)
 		UpcomingEvents(srv, opt2)
 	}
 }

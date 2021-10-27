@@ -24,8 +24,7 @@ func TestGeneral(t *testing.T) {
 	want := regexp.MustCompile(`\b` + name + `\b`)
 	msg := General("Gladys")
 	if !want.MatchString(msg) {
-		t.Fatalf(`Hello("Gladys") = %q, %v, want match for , nil`, msg, want)
-	} // fmt.Println("Basic Help")
+		t.Fatalf(`Hello("Gladys") = %q, %v, want match for  nil`, msg, want)
+	}
 
-	// h := GetHomeDir()
 }

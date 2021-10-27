@@ -19,8 +19,7 @@ import (
 )
 
 func General(h string) string {
-	r := "Basic Help for: " + h
-	fmt.Println("Basic Help for: " + h)
-	return r
-	// h := GetHomeDir()
+	s := "Basic Help for: " + h
+	fmt.Println(s)
+	return s
 }
