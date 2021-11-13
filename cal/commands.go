@@ -71,6 +71,7 @@ func eventDefaults() *calendar.Event {
 	e.Visibility = "public" // default private public
 	e.GuestsCanModify = true
 	e.Attendees = append(e.Attendees, &calendar.EventAttendee{Email: "secret@gmail.com"})
+
 	// e.Recurrence = []string{"RRULE:FREQ=WEEKLY;COUNT=2"}
 	// Recurrence: []string{"RRULE:FREQ=WEEKLY;COUNT=2"},
 	// Attendees: []*calendar.EventAttendee{
